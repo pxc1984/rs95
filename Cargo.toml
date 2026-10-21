@@ -1,0 +1,31 @@
+[package]
+name = "rs95"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+description = "Authentic Windows 95 classic look and widgets for egui, inspired by React95"
+license = "MIT"
+repository = "https://github.com/pxc1984/rs95"
+readme = "README"
+authors = [
+    "Igor Mamaev <igor.mamaev1@gmail.com>",
+]
+keywords = ["egui", "gui", "windows95", "retro", "theme"]
+categories = ["gui"]
+include = ["src/**/*", "assets/**/*", "examples/**/*", "README.md", "LICENSE"]
+
+[features]
+default = ["font"]
+## Bundle the W95FA pixel font (SIL OFL 1.1) and install it with `rs95::install`.
+font = []
+
+[dependencies]
+egui = { version = "0.37", default-features = false, features = ["default_fonts"] }
+
+[dev-dependencies]
+eframe = "0.37"
+egui_kittest = { version = "0.37", features = ["wgpu", "snapshot"] }
+egui-wgpu = "0.37"
+
+[[example]]
+name = "demo"
