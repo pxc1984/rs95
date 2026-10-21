@@ -1,1 +1,14 @@
 Тема для egui в стиле windows 95
+
+![showcase](tests/snapshots/showcase.png)
+
+Своя рамка окна вместо системной (Windows, macOS, Linux):
+
+    let options = eframe::NativeOptions {
+        viewport: rs95::native_viewport(egui::ViewportBuilder::default()),
+        ..Default::default()
+    };
+    // в App::ui:
+    rs95::NativeWindow::new("My App").show(ui, |ui| { /* ... */ });
+
+Демо: `cargo run --example demo`

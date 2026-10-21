@@ -210,13 +210,13 @@ impl<N: Numeric> Widget for NumberInput<'_, N> {
             },
         );
 
-        if response.changed() {
-            if let Ok(v) = buf.trim().parse::<f64>() {
-                let v = clamp(v);
-                if v != *self.value {
-                    *self.value = v;
-                    changed = true;
-                }
+        if response.changed()
+            && let Ok(v) = buf.trim().parse::<f64>()
+        {
+            let v = clamp(v);
+            if v != *self.value {
+                *self.value = v;
+                changed = true;
             }
         }
         if response.lost_focus() {

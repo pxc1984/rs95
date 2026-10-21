@@ -66,15 +66,19 @@ impl ScrollView {
                 area = area.vertical_scroll_offset(offset);
             }
             let out = ui
-                .allocate_ui(vec2(content_w, self.max_height), |ui| {
-                    ui.set_width(content_w);
-                    area.show(ui, |ui| {
-                        egui::Frame::NONE
-                            .inner_margin(4)
-                            .show(ui, add_contents)
-                            .inner
-                    })
-                })
+                .allocate_ui_with_layout(
+                    vec2(content_w, self.max_height),
+                    egui::Layout::top_down(egui::Align::Min),
+                    |ui| {
+                        ui.set_width(content_w);
+                        area.show(ui, |ui| {
+                            egui::Frame::NONE
+                                .inner_margin(4)
+                                .show(ui, add_contents)
+                                .inner
+                        })
+                    },
+                )
                 .inner;
 
             let viewport = out.inner_rect.height();
@@ -143,17 +147,17 @@ impl ScrollView {
                 );
 
                 let track_resp = ui.interact(track, id.with("track"), Sense::click());
-                if track_resp.clicked() {
-                    if let Some(p) = track_resp.interact_pointer_pos() {
-                        let page = viewport - step;
-                        new_offset += if p.y < thumb.min.y {
-                            -page
-                        } else if p.y > thumb.max.y {
-                            page
-                        } else {
-                            0.0
-                        };
-                    }
+                if track_resp.clicked()
+                    && let Some(p) = track_resp.interact_pointer_pos()
+                {
+                    let page = viewport - step;
+                    new_offset += if p.y < thumb.min.y {
+                        -page
+                    } else if p.y > thumb.max.y {
+                        page
+                    } else {
+                        0.0
+                    };
                 }
                 let thumb_resp = ui.interact(thumb, id.with("thumb"), Sense::drag());
                 if thumb_resp.dragged() && free > 0.0 {

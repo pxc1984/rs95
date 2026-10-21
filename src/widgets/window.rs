@@ -55,6 +55,7 @@ pub struct Window<'a> {
     resizable: bool,
     padding: Margin,
     min_size: Vec2,
+    constrain_rect: Option<Rect>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -80,6 +81,7 @@ impl<'a> Window<'a> {
             resizable: false,
             padding: Margin::same(6),
             min_size: vec2(120.0, 40.0),
+            constrain_rect: None,
         }
     }
 
@@ -153,6 +155,13 @@ impl<'a> Window<'a> {
         self
     }
 
+    /// Keep the floating window inside `rect` (e.g. the desktop area
+    /// below a [`crate::NativeWindow`] title bar). Defaults to the screen.
+    pub fn constrain_to(mut self, rect: Rect) -> Self {
+        self.constrain_rect = Some(rect);
+        self
+    }
+
     /// Show as a floating, draggable window. Returns `None` when closed.
     pub fn show<R>(
         mut self,
@@ -175,6 +184,10 @@ impl<'a> Window<'a> {
             .movable(false)
             .constrain(true)
             .current_pos(state.pos);
+        let area = match self.constrain_rect {
+            Some(rect) => area.constrain_to(rect),
+            None => area,
+        };
         let layer = egui::LayerId::new(Order::Middle, self.id);
         let active = self.active.unwrap_or_else(|| {
             ctx.memory(|m| m.areas().top_layer_id(Order::Middle)) == Some(layer)
@@ -197,10 +210,10 @@ impl<'a> Window<'a> {
             let current = state.size.unwrap_or(out.content_size);
             state.size = Some((current + delta).max(min_size));
         }
-        if out.close_clicked {
-            if let Some(open) = open {
-                *open = false;
-            }
+        if out.close_clicked
+            && let Some(open) = open
+        {
+            *open = false;
         }
         ctx.data_mut(|d| d.insert_temp(state_id, state));
         Some(out.into_public())
@@ -218,10 +231,10 @@ impl<'a> Window<'a> {
         let open = self.open.take();
         let size = self.default_size;
         let out = self.ui(ui, size, add_contents);
-        if out.close_clicked {
-            if let Some(open) = open {
-                *open = false;
-            }
+        if out.close_clicked
+            && let Some(open) = open
+        {
+            *open = false;
         }
         Some(out.into_public())
     }
@@ -266,83 +279,15 @@ impl<'a> Window<'a> {
             rect.min + Vec2::splat(BORDER),
             vec2(rect.width() - 2.0 * BORDER, HEADER_H),
         );
-        let header = ui.interact(
-            header_rect,
-            self.id.with("rs95_header"),
-            Sense::click_and_drag(),
-        );
-
-        let (bg_l, bg_r, fg) = if active {
-            (
-                t.header_background,
-                t.header_gradient.unwrap_or(t.header_background),
-                t.header_text,
-            )
-        } else {
-            (
-                t.header_not_active_background,
-                t.header_not_active_gradient
-                    .unwrap_or(t.header_not_active_background),
-                t.header_not_active_text,
-            )
-        };
-        painter.add(gradient(header_rect, bg_l, bg_r));
-
-        // title buttons, right to left
-        let btn = vec2(16.0, 14.0);
-        let mut x = header_rect.max.x - 2.0;
-        let y = header_rect.center().y - btn.y / 2.0;
-        let mut clicked = [false; 4];
-        let specs = [
-            (self.buttons.close, icons::CLOSE, "close", 2.0),
-            (self.buttons.maximize, icons::MAXIMIZE, "max", 0.0),
-            (self.buttons.minimize, icons::MINIMIZE, "min", 2.0),
-            (self.buttons.help, icons::HELP, "help", 0.0),
-        ];
-        let enabled = ui.is_enabled();
-        for (i, (show, rows, salt, gap)) in specs.into_iter().enumerate() {
-            if !show {
-                continue;
-            }
-            let r = Rect::from_min_size(pos2(x - btn.x, y.round()), btn);
-            let resp = ui.interact(r, self.id.with(("rs95_title_btn", salt)), Sense::click());
-            let pressed = resp.is_pointer_button_down_on() && resp.hovered();
-            painter.rect_filled(r, 0.0, t.material);
-            paint::bevel(
-                painter,
-                r,
-                if pressed {
-                    Bevel::ButtonPressed
-                } else {
-                    Bevel::Button
-                },
-                &t,
-            );
-            let off = if pressed { vec2(1.0, 1.0) } else { Vec2::ZERO };
-            let color = if enabled {
-                t.material_text
-            } else {
-                t.material_text_disabled
-            };
-            paint::icon(painter, r.translate(off), rows, color);
-            clicked[i] = resp.clicked();
-            x -= btn.x + gap;
-        }
-
-        // bold title: draw twice, one point apart
-        let galley = self.title.into_galley(
+        let TitleBar { header, clicked } = title_bar(
             ui,
-            Some(TextWrapMode::Truncate),
-            (x - header_rect.min.x - 6.0).max(0.0),
-            TextStyle::Body,
+            header_rect,
+            self.id,
+            self.title,
+            active,
+            self.buttons,
+            false,
         );
-        let pos = pos2(
-            header_rect.min.x + 3.0,
-            header_rect.center().y - galley.size().y / 2.0,
-        )
-        .round();
-        painter.galley_with_override_text_color(pos, galley.clone(), fg);
-        painter.galley_with_override_text_color(pos + vec2(1.0, 0.0), galley, fg);
 
         let mut grip_drag = None;
         if self.resizable {
@@ -396,6 +341,110 @@ impl<R> Inner<R> {
             close_clicked: self.close_clicked,
         }
     }
+}
+
+pub(crate) struct TitleBar {
+    pub header: Response,
+    /// close, maximize, minimize, help
+    pub clicked: [bool; 4],
+}
+
+/// Paint a title bar into `header_rect` and handle its buttons.
+pub(crate) fn title_bar(
+    ui: &Ui,
+    header_rect: Rect,
+    id: Id,
+    title: WidgetText,
+    active: bool,
+    buttons: TitleButtons,
+    maximized: bool,
+) -> TitleBar {
+    let t = Theme::get(ui.ctx());
+    let painter = ui.painter().clone();
+    let header = ui.interact(header_rect, id.with("rs95_header"), Sense::click_and_drag());
+
+    let (bg_l, bg_r, fg) = if active {
+        (
+            t.header_background,
+            t.header_gradient.unwrap_or(t.header_background),
+            t.header_text,
+        )
+    } else {
+        (
+            t.header_not_active_background,
+            t.header_not_active_gradient
+                .unwrap_or(t.header_not_active_background),
+            t.header_not_active_text,
+        )
+    };
+    painter.add(gradient(header_rect, bg_l, bg_r));
+
+    // title buttons, right to left
+    let btn = vec2(16.0, 14.0);
+    let mut x = header_rect.max.x - 2.0;
+    let y = header_rect.center().y - btn.y / 2.0;
+    let mut clicked = [false; 4];
+    let specs = [
+        (buttons.close, icons::CLOSE, "close", 2.0),
+        (
+            buttons.maximize,
+            if maximized {
+                icons::RESTORE
+            } else {
+                icons::MAXIMIZE
+            },
+            "max",
+            0.0,
+        ),
+        (buttons.minimize, icons::MINIMIZE, "min", 2.0),
+        (buttons.help, icons::HELP, "help", 0.0),
+    ];
+    let enabled = ui.is_enabled();
+    for (i, (show, rows, salt, gap)) in specs.into_iter().enumerate() {
+        if !show {
+            continue;
+        }
+        let r = Rect::from_min_size(pos2(x - btn.x, y.round()), btn);
+        let resp = ui.interact(r, id.with(("rs95_title_btn", salt)), Sense::click());
+        let pressed = resp.is_pointer_button_down_on() && resp.hovered();
+        painter.rect_filled(r, 0.0, t.material);
+        paint::bevel(
+            &painter,
+            r,
+            if pressed {
+                Bevel::ButtonPressed
+            } else {
+                Bevel::Button
+            },
+            &t,
+        );
+        let off = if pressed { vec2(1.0, 1.0) } else { Vec2::ZERO };
+        let color = if enabled {
+            t.material_text
+        } else {
+            t.material_text_disabled
+        };
+        paint::icon(&painter, r.translate(off), rows, color);
+        clicked[i] = resp.clicked();
+        x -= btn.x + gap;
+    }
+
+    // bold title: draw twice, one point apart
+    let galley = title.into_galley(
+        ui,
+        Some(TextWrapMode::Truncate),
+        (x - header_rect.min.x - 6.0).max(0.0),
+        TextStyle::Body,
+    );
+    let pos = pos2(
+        header_rect.min.x + 3.0,
+        header_rect.center().y - galley.size().y / 2.0,
+    )
+    .round();
+    painter.galley_with_override_text_color(pos, galley.clone(), fg);
+    painter.galley_with_override_text_color(pos + vec2(1.0, 0.0), galley, fg);
+
+    TitleBar { header, clicked }
 }
 
 fn gradient(rect: Rect, left: egui::Color32, right: egui::Color32) -> Shape {

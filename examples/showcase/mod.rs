@@ -2,9 +2,9 @@
 
 use egui::{Align, Layout, RectAlign, Ui, vec2};
 use rs95::{
-    AppBar, Button, Checkbox, Counter, Frame, GroupBox, MenuButton, MenuItem, NumberInput,
-    ProgressBar, ScrollView, Select, Separator, Slider, StatusField, Table, Tabs, TextInput, Theme,
-    Toolbar, Window, menu_separator, radio_value, tooltip,
+    AppBar, Button, Checkbox, Counter, Frame, GroupBox, MenuButton, MenuItem, NativeWindow,
+    NumberInput, ProgressBar, ScrollView, Select, Separator, Slider, StatusField, Table, Tabs,
+    TextInput, Theme, Toolbar, Window, menu_separator, radio_value, tooltip,
 };
 
 pub struct Showcase {
@@ -74,6 +74,13 @@ impl Showcase {
             rs95::install(&ctx, Theme::all()[self.theme]);
             self.applied_theme = Some(self.theme);
         }
+        NativeWindow::new("rs95 demo")
+            .padding(0)
+            .show(ui, |ui| self.desktop(ui));
+    }
+
+    fn desktop(&mut self, ui: &mut Ui) {
+        let ctx = ui.ctx().clone();
         let t = Theme::get(&ctx);
 
         // taskbar
@@ -82,7 +89,7 @@ impl Showcase {
             .show_separator_line(false)
             .show(ui, |ui| self.taskbar(ui));
 
-        egui::CentralPanel::default()
+        let desk = egui::CentralPanel::default()
             .frame(egui::Frame::NONE.fill(t.desktop_background))
             .show(ui, |ui| {
                 ui.with_layout(Layout::top_down(Align::Min), |ui| {
@@ -104,11 +111,12 @@ impl Showcase {
                 });
             });
 
-        self.controls_window(&ctx);
-        self.tabs_window(&ctx);
-        self.explorer_window(&ctx);
-        self.notepad_window(&ctx);
-        self.mines_window(&ctx);
+        let desk = desk.response.rect;
+        self.controls_window(&ctx, desk);
+        self.tabs_window(&ctx, desk);
+        self.explorer_window(&ctx, desk);
+        self.notepad_window(&ctx, desk);
+        self.mines_window(&ctx, desk);
     }
 
     fn taskbar(&mut self, ui: &mut Ui) {
@@ -145,10 +153,11 @@ impl Showcase {
         });
     }
 
-    fn controls_window(&mut self, ctx: &egui::Context) {
+    fn controls_window(&mut self, ctx: &egui::Context, desk: egui::Rect) {
         Window::new("Controls")
+            .constrain_to(desk)
             .open(&mut self.controls_open)
-            .default_pos([110.0, 20.0])
+            .default_pos(desk.min + vec2(110.0, 20.0))
             .help_button(true)
             .show(ctx, |ui| {
                 ui.horizontal(|ui| {
@@ -221,9 +230,10 @@ impl Showcase {
             });
     }
 
-    fn tabs_window(&mut self, ctx: &egui::Context) {
+    fn tabs_window(&mut self, ctx: &egui::Context, desk: egui::Rect) {
         Window::new("Display Properties")
-            .default_pos([480.0, 20.0])
+            .constrain_to(desk)
+            .default_pos(desk.min + vec2(480.0, 20.0))
             .help_button(true)
             .show(ctx, |ui| {
                 Tabs::new(&mut self.tab)
@@ -263,17 +273,23 @@ impl Showcase {
                         }
                     });
                 ui.add_space(8.0);
-                ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
-                    ui.add(Button::new("Apply").min_size(vec2(75.0, 0.0)));
-                    ui.add(Button::new("Cancel").min_size(vec2(75.0, 0.0)));
-                    ui.add(Button::new("OK").primary(true).min_size(vec2(75.0, 0.0)));
-                });
+                let w = ui.min_rect().width();
+                ui.allocate_ui_with_layout(
+                    vec2(w, 23.0),
+                    Layout::right_to_left(Align::Min),
+                    |ui| {
+                        ui.add(Button::new("Apply").min_size(vec2(75.0, 0.0)));
+                        ui.add(Button::new("Cancel").min_size(vec2(75.0, 0.0)));
+                        ui.add(Button::new("OK").primary(true).min_size(vec2(75.0, 0.0)));
+                    },
+                );
             });
     }
 
-    fn explorer_window(&mut self, ctx: &egui::Context) {
+    fn explorer_window(&mut self, ctx: &egui::Context, desk: egui::Rect) {
         Window::new("Exploring - C:\\")
-            .default_pos([480.0, 330.0])
+            .constrain_to(desk)
+            .default_pos(desk.min + vec2(480.0, 330.0))
             .minimize_maximize(true)
             .default_size([380.0, 230.0])
             .resizable(true)
@@ -319,20 +335,23 @@ impl Showcase {
             });
     }
 
-    fn notepad_window(&mut self, ctx: &egui::Context) {
+    fn notepad_window(&mut self, ctx: &egui::Context, desk: egui::Rect) {
         Window::new("Notepad")
+            .constrain_to(desk)
             .open(&mut self.notepad_open)
-            .default_pos([110.0, 470.0])
+            .default_pos(desk.min + vec2(110.0, 470.0))
             .minimize_maximize(true)
             .active(false)
             .padding(2)
             .show(ctx, |ui| {
                 ScrollView::new("notepad").max_height(120.0).show(ui, |ui| {
                     ui.set_width(300.0);
+                    ui.spacing_mut().item_spacing.y = 2.0;
                     for i in 1..=15 {
-                        ui.label(format!(
-                            "Line {i}: The quick brown fox jumps over the lazy dog."
-                        ));
+                        ui.add(
+                            egui::Label::new(format!("Line {i}: The quick brown fox jumps."))
+                                .extend(),
+                        );
                     }
                 });
                 ui.add_space(4.0);
@@ -340,9 +359,10 @@ impl Showcase {
             });
     }
 
-    fn mines_window(&mut self, ctx: &egui::Context) {
+    fn mines_window(&mut self, ctx: &egui::Context, desk: egui::Rect) {
         Window::new("Minesweeper")
-            .default_pos([890.0, 20.0])
+            .constrain_to(desk)
+            .default_pos(desk.min + vec2(890.0, 20.0))
             .minimize_maximize(true)
             .close_button(true)
             .show(ctx, |ui| {
@@ -368,22 +388,28 @@ impl Showcase {
                     .fill(Theme::get(ui.ctx()).material)
                     .inner_margin(0)
                     .show(ui, |ui| {
-                        egui::Grid::new("mines").spacing([0.0, 0.0]).show(ui, |ui| {
-                            for y in 0..8 {
-                                for x in 0..8 {
-                                    let open = (x + y) % 5 == 0 || y > 5;
-                                    let r = ui.add(
-                                        Button::new(if open && x == 3 { "1" } else { " " })
-                                            .active(open)
-                                            .min_size(vec2(18.0, 18.0)),
-                                    );
-                                    if r.clicked() {
-                                        self.mines -= 1;
+                        ui.spacing_mut().button_padding = vec2(0.0, 0.0);
+                        ui.spacing_mut().interact_size.y = 18.0;
+                        egui::Grid::new("mines")
+                            .spacing([0.0, 0.0])
+                            .min_col_width(0.0)
+                            .min_row_height(0.0)
+                            .show(ui, |ui| {
+                                for y in 0..8 {
+                                    for x in 0..8 {
+                                        let open = (x + y) % 5 == 0 || y > 5;
+                                        let r = ui.add(
+                                            Button::new(if open && x == 3 { "1" } else { " " })
+                                                .active(open)
+                                                .min_size(vec2(18.0, 18.0)),
+                                        );
+                                        if r.clicked() {
+                                            self.mines -= 1;
+                                        }
                                     }
+                                    ui.end_row();
                                 }
-                                ui.end_row();
-                            }
-                        });
+                            });
                     });
             });
     }

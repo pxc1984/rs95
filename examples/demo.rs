@@ -2,7 +2,8 @@ mod showcase;
 
 fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
+        // no OS title bar: rs95::NativeWindow draws a Win95 one instead
+        viewport: rs95::native_viewport(egui::ViewportBuilder::default())
             .with_inner_size([1300.0, 820.0])
             .with_title("rs95 demo"),
         ..Default::default()
