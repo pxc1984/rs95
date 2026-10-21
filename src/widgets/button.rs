@@ -1,10 +1,9 @@
 use egui::{
-    Response, Role, Sense, TextStyle, TextWrapMode, Ui, Vec2, Widget, WidgetInfo, WidgetText,
-    vec2,
+    Response, Role, Sense, TextStyle, TextWrapMode, Ui, Vec2, Widget, WidgetInfo, WidgetText, vec2,
 };
 
-use crate::paint::{self, Bevel};
 use crate::Theme;
+use crate::paint::{self, Bevel};
 
 /// Visual variant of a [`Button`].
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -135,7 +134,10 @@ impl Widget for Button {
 
         let (rect, response) = ui.allocate_exact_size(size, Sense::click());
         let enabled = ui.is_enabled();
-        let label = galley.as_ref().map(|g| g.text().to_owned()).unwrap_or_default();
+        let label = galley
+            .as_ref()
+            .map(|g| g.text().to_owned())
+            .unwrap_or_default();
         response.widget_info(|| {
             if self.active {
                 WidgetInfo::selected(Role::Button, enabled, true, &label)
@@ -163,7 +165,11 @@ impl Widget for Button {
                     } else {
                         painter.rect_filled(face, 0.0, t.material);
                     }
-                    let b = if pressed { Bevel::ButtonPressed } else { Bevel::Button };
+                    let b = if pressed {
+                        Bevel::ButtonPressed
+                    } else {
+                        Bevel::Button
+                    };
                     paint::bevel(painter, face, b, &t);
                 }
                 ButtonVariant::Flat => {
@@ -184,11 +190,17 @@ impl Widget for Button {
             }
 
             let offset = if pressed { vec2(1.0, 1.0) } else { Vec2::ZERO };
-            let content_rect =
-                egui::Rect::from_center_size(face.center() + offset, content_size);
+            let content_rect = egui::Rect::from_center_size(face.center() + offset, content_size);
             match (&self.content, galley) {
                 (Content::Text(_), Some(galley)) => {
-                    paint::text(painter, content_rect.min, galley, t.material_text, enabled, &t);
+                    paint::text(
+                        painter,
+                        content_rect.min,
+                        galley,
+                        t.material_text,
+                        enabled,
+                        &t,
+                    );
                 }
                 (Content::Icon(rows), _) => {
                     if enabled {

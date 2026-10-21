@@ -1,6 +1,6 @@
 use egui::{
-    InnerResponse, Popup, PopupCloseBehavior, RectAlign, Response, Sense, TextStyle,
-    TextWrapMode, Ui, Widget, WidgetText, pos2, vec2,
+    InnerResponse, Popup, PopupCloseBehavior, RectAlign, Response, Sense, TextStyle, TextWrapMode,
+    Ui, Widget, WidgetText, pos2, vec2,
 };
 
 use crate::paint::{self, icons};
@@ -62,7 +62,12 @@ impl Widget for MenuItem {
     fn ui(self, ui: &mut Ui) -> Response {
         let t = Theme::get(ui.ctx());
         let layout = |w: WidgetText| {
-            w.into_galley(ui, Some(TextWrapMode::Extend), f32::INFINITY, TextStyle::Body)
+            w.into_galley(
+                ui,
+                Some(TextWrapMode::Extend),
+                f32::INFINITY,
+                TextStyle::Body,
+            )
         };
         let galley = layout(self.text);
         let shortcut = self.shortcut.map(layout);
@@ -80,16 +85,40 @@ impl Widget for MenuItem {
             if highlight {
                 painter.rect_filled(rect, 0.0, t.hover_background);
             }
-            let color = if highlight { t.canvas_text_invert } else { t.material_text };
+            let color = if highlight {
+                t.canvas_text_invert
+            } else {
+                t.material_text
+            };
             let y = rect.center().y - galley.size().y / 2.0;
             if self.checked {
                 let r = egui::Rect::from_min_max(rect.min, pos2(rect.min.x + gutter, rect.max.y));
-                paint::icon(painter, r, icons::CHECK, if enabled { color } else { t.material_text_disabled });
+                paint::icon(
+                    painter,
+                    r,
+                    icons::CHECK,
+                    if enabled {
+                        color
+                    } else {
+                        t.material_text_disabled
+                    },
+                );
             }
             if highlight {
-                painter.galley_with_override_text_color(pos2(rect.min.x + gutter, y).round(), galley, color);
+                painter.galley_with_override_text_color(
+                    pos2(rect.min.x + gutter, y).round(),
+                    galley,
+                    color,
+                );
             } else {
-                paint::text(painter, pos2(rect.min.x + gutter, y), galley, color, enabled, &t);
+                paint::text(
+                    painter,
+                    pos2(rect.min.x + gutter, y),
+                    galley,
+                    color,
+                    enabled,
+                    &t,
+                );
             }
             if let Some(s) = shortcut {
                 let pos = pos2(rect.max.x - 20.0 - s.size().x, y);

@@ -3,8 +3,8 @@ use egui::{
     Widget, WidgetText, pos2, vec2,
 };
 
-use crate::paint::{self, Bevel};
 use crate::Theme;
+use crate::paint::{self, Bevel};
 
 /// A container drawn with one of the Win95 bevels (React95 `Frame`).
 ///
@@ -111,7 +111,9 @@ pub struct GroupBox {
 
 impl GroupBox {
     pub fn new(label: impl Into<WidgetText>) -> Self {
-        Self { label: label.into() }
+        Self {
+            label: label.into(),
+        }
     }
 
     pub fn show<R>(self, ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> InnerResponse<R> {
@@ -138,14 +140,25 @@ impl GroupBox {
         // the frame lives in the margin, so it can be painted after the contents
         let rect = r.response.rect;
         let painter = ui.painter();
-        paint::etched(painter, Rect::from_min_max(pos2(rect.min.x, rect.min.y + top), rect.max), &t);
+        paint::etched(
+            painter,
+            Rect::from_min_max(pos2(rect.min.x, rect.min.y + top), rect.max),
+            &t,
+        );
         let label_pos = pos2(rect.min.x + 8.0, rect.min.y);
         painter.rect_filled(
             Rect::from_min_size(label_pos, galley.size() + vec2(4.0, 0.0)),
             0.0,
             t.material,
         );
-        paint::text(painter, label_pos + vec2(2.0, 0.0), galley, t.material_text, ui.is_enabled(), &t);
+        paint::text(
+            painter,
+            label_pos + vec2(2.0, 0.0),
+            galley,
+            t.material_text,
+            ui.is_enabled(),
+            &t,
+        );
         r
     }
 }
@@ -189,10 +202,12 @@ pub struct AppBar;
 
 impl AppBar {
     pub fn show<R>(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> InnerResponse<R> {
-        Frame::window().inner_margin(Margin::same(2)).show(ui, |ui| {
-            ui.set_min_width(ui.available_width());
-            ui.horizontal(add_contents).inner
-        })
+        Frame::window()
+            .inner_margin(Margin::same(2))
+            .show(ui, |ui| {
+                ui.set_min_width(ui.available_width());
+                ui.horizontal(add_contents).inner
+            })
     }
 }
 
@@ -264,5 +279,6 @@ pub fn tooltip(response: Response, text: impl Into<WidgetText>) -> Response {
 /// Paint the teal desktop background over `ui`'s whole clip rect.
 pub fn desktop(ui: &Ui) {
     let t = Theme::get(ui.ctx());
-    ui.painter().rect_filled(ui.clip_rect(), 0.0, t.desktop_background);
+    ui.painter()
+        .rect_filled(ui.clip_rect(), 0.0, t.desktop_background);
 }

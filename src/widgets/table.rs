@@ -1,7 +1,7 @@
 use egui::{Align2, Rect, Sense, TextStyle, Ui, pos2, vec2};
 
-use crate::paint::{self, Bevel};
 use crate::Theme;
+use crate::paint::{self, Bevel};
 
 /// What was clicked in a [`Table`].
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -63,9 +63,18 @@ impl<'a> Table<'a> {
         let total = ui.available_width();
         let given: f32 = self.widths.map_or(0.0, |w| w.iter().take(n).sum());
         let n_given = self.widths.map_or(0, |w| w.len().min(n));
-        let rest = if n > n_given { ((total - 4.0 - given) / (n - n_given) as f32).max(40.0) } else { 0.0 };
+        let rest = if n > n_given {
+            ((total - 4.0 - given) / (n - n_given) as f32).max(40.0)
+        } else {
+            0.0
+        };
         let widths: Vec<f32> = (0..n)
-            .map(|i| self.widths.and_then(|w| w.get(i).copied()).unwrap_or(rest).round())
+            .map(|i| {
+                self.widths
+                    .and_then(|w| w.get(i).copied())
+                    .unwrap_or(rest)
+                    .round()
+            })
             .collect();
         let width: f32 = widths.iter().sum::<f32>() + 4.0;
         let header_h = 22.0;
@@ -90,7 +99,16 @@ impl<'a> Table<'a> {
             let resp = ui.interact(r, base.with(("h", i)), Sense::click());
             let pressed = resp.is_pointer_button_down_on() && resp.hovered();
             painter.rect_filled(r, 0.0, t.material);
-            paint::bevel(painter, r, if pressed { Bevel::ButtonPressed } else { Bevel::Button }, &t);
+            paint::bevel(
+                painter,
+                r,
+                if pressed {
+                    Bevel::ButtonPressed
+                } else {
+                    Bevel::Button
+                },
+                &t,
+            );
             if let Some(h) = self.headers.get(i) {
                 let off = if pressed { 1.0 } else { 0.0 };
                 painter.with_clip_rect(r.shrink(2.0)).text(
@@ -118,7 +136,11 @@ impl<'a> Table<'a> {
             if highlight {
                 painter.rect_filled(r, 0.0, t.hover_background);
             }
-            let color = if highlight { t.canvas_text_invert } else { t.canvas_text };
+            let color = if highlight {
+                t.canvas_text_invert
+            } else {
+                t.canvas_text
+            };
             let mut x = inner.min.x;
             for (ci, w) in widths.iter().enumerate() {
                 if let Some(cell) = row.get(ci) {

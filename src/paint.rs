@@ -4,8 +4,8 @@
 //! result stays crisp at any integer `pixels_per_point`.
 
 use egui::{
-    Color32, Context, Galley, Id, Painter, Pos2, Rect, TextureHandle, TextureOptions, Vec2,
-    pos2, vec2,
+    Color32, Context, Galley, Id, Painter, Pos2, Rect, TextureHandle, TextureOptions, Vec2, pos2,
+    vec2,
 };
 use std::sync::Arc;
 
@@ -92,28 +92,76 @@ pub fn outline(painter: &Painter, rect: Rect, color: Color32) {
 
 /// Etched (engraved) 2px line frame, as used by group boxes.
 pub fn etched(painter: &Painter, rect: Rect, t: &Theme) {
-    outline(painter, rect.with_max_x(rect.max.x - 1.0).with_max_y(rect.max.y - 1.0), t.border_dark);
+    outline(
+        painter,
+        rect.with_max_x(rect.max.x - 1.0)
+            .with_max_y(rect.max.y - 1.0),
+        t.border_dark,
+    );
     two_tone(
         painter,
-        rect.with_min_x(rect.min.x + 1.0).with_min_y(rect.min.y + 1.0),
+        rect.with_min_x(rect.min.x + 1.0)
+            .with_min_y(rect.min.y + 1.0),
         t.border_lightest,
         t.border_lightest,
     );
     // restore the inner dark edge that the white outline overwrote on top/left
-    px_rect(painter, rect.min.x + 1.0, rect.min.y, rect.max.x - 1.0, rect.min.y + 1.0, t.border_dark);
-    px_rect(painter, rect.min.x, rect.min.y + 1.0, rect.min.x + 1.0, rect.max.y - 1.0, t.border_dark);
+    px_rect(
+        painter,
+        rect.min.x + 1.0,
+        rect.min.y,
+        rect.max.x - 1.0,
+        rect.min.y + 1.0,
+        t.border_dark,
+    );
+    px_rect(
+        painter,
+        rect.min.x,
+        rect.min.y + 1.0,
+        rect.min.x + 1.0,
+        rect.max.y - 1.0,
+        t.border_dark,
+    );
 }
 
 /// Horizontal etched separator starting at `left`.
 pub fn etched_hline(painter: &Painter, left: Pos2, width: f32, t: &Theme) {
-    px_rect(painter, left.x, left.y, left.x + width, left.y + 1.0, t.border_dark);
-    px_rect(painter, left.x, left.y + 1.0, left.x + width, left.y + 2.0, t.border_lightest);
+    px_rect(
+        painter,
+        left.x,
+        left.y,
+        left.x + width,
+        left.y + 1.0,
+        t.border_dark,
+    );
+    px_rect(
+        painter,
+        left.x,
+        left.y + 1.0,
+        left.x + width,
+        left.y + 2.0,
+        t.border_lightest,
+    );
 }
 
 /// Vertical etched separator starting at `top`.
 pub fn etched_vline(painter: &Painter, top: Pos2, height: f32, t: &Theme) {
-    px_rect(painter, top.x, top.y, top.x + 1.0, top.y + height, t.border_dark);
-    px_rect(painter, top.x + 1.0, top.y, top.x + 2.0, top.y + height, t.border_lightest);
+    px_rect(
+        painter,
+        top.x,
+        top.y,
+        top.x + 1.0,
+        top.y + height,
+        t.border_dark,
+    );
+    px_rect(
+        painter,
+        top.x + 1.0,
+        top.y,
+        top.x + 2.0,
+        top.y + height,
+        t.border_lightest,
+    );
 }
 
 #[inline]
@@ -230,7 +278,14 @@ pub fn icon(painter: &Painter, rect: Rect, rows: &[&str], color: Color32) {
 
 /// Draw text the way Windows 95 draws disabled text: a white copy offset by
 /// one point below a gray one.
-pub fn text(painter: &Painter, pos: Pos2, galley: Arc<Galley>, color: Color32, enabled: bool, t: &Theme) {
+pub fn text(
+    painter: &Painter,
+    pos: Pos2,
+    galley: Arc<Galley>,
+    color: Color32,
+    enabled: bool,
+    t: &Theme,
+) {
     let pos = pos.round();
     if enabled {
         painter.galley(pos, galley, color);
@@ -266,12 +321,7 @@ pub fn resize_grip(painter: &Painter, rect: Rect, t: &Theme) {
 pub mod icons {
     pub const CHECK: &[&str] = &[
         "......#", //
-        ".....##",
-        "#...###",
-        "##.###.",
-        "#####..",
-        ".###...",
-        "..#....",
+        ".....##", "#...###", "##.###.", "#####..", ".###...", "..#....",
     ];
 
     /// `d` dark, `k` darkest, `l` light, `w` lightest, `c` canvas.
@@ -292,75 +342,47 @@ pub mod icons {
 
     pub const RADIO_DOT: &[&str] = &[
         ".##.", //
-        "####",
-        "####",
-        ".##.",
+        "####", "####", ".##.",
     ];
 
     pub const ARROW_DOWN: &[&str] = &[
         "#######", //
-        ".#####.",
-        "..###..",
-        "...#...",
+        ".#####.", "..###..", "...#...",
     ];
 
     pub const ARROW_UP: &[&str] = &[
         "...#...", //
-        "..###..",
-        ".#####.",
-        "#######",
+        "..###..", ".#####.", "#######",
     ];
 
     pub const ARROW_LEFT: &[&str] = &[
         "...#", //
-        "..##",
-        ".###",
-        "####",
-        ".###",
-        "..##",
-        "...#",
+        "..##", ".###", "####", ".###", "..##", "...#",
     ];
 
     pub const ARROW_RIGHT: &[&str] = &[
         "#...", //
-        "##..",
-        "###.",
-        "####",
-        "###.",
-        "##..",
-        "#...",
+        "##..", "###.", "####", "###.", "##..", "#...",
     ];
 
     pub const SMALL_ARROW_UP: &[&str] = &[
         "..#..", //
-        ".###.",
-        "#####",
+        ".###.", "#####",
     ];
 
     pub const SMALL_ARROW_DOWN: &[&str] = &[
         "#####", //
-        ".###.",
-        "..#..",
+        ".###.", "..#..",
     ];
 
     pub const CLOSE: &[&str] = &[
         "##....##", //
-        ".##..##.",
-        "..####..",
-        "...##...",
-        "..####..",
-        ".##..##.",
-        "##....##",
+        ".##..##.", "..####..", "...##...", "..####..", ".##..##.", "##....##",
     ];
 
     pub const MINIMIZE: &[&str] = &[
         "......", //
-        "......",
-        "......",
-        "......",
-        "......",
-        "######",
-        "######",
+        "......", "......", "......", "......", "######", "######",
     ];
 
     pub const MAXIMIZE: &[&str] = &[
@@ -376,24 +398,12 @@ pub mod icons {
 
     pub const RESTORE: &[&str] = &[
         "..######", //
-        "..######",
-        "..#....#",
-        "######.#",
-        "######.#",
-        "#....###",
-        "#....#..",
-        "#....#..",
+        "..######", "..#....#", "######.#", "######.#", "#....###", "#....#..", "#....#..",
         "######..",
     ];
 
     pub const HELP: &[&str] = &[
         ".####.", //
-        "##..##",
-        "....##",
-        "...##.",
-        "..##..",
-        "......",
-        "..##..",
+        "##..##", "....##", "...##.", "..##..", "......", "..##..",
     ];
-
 }

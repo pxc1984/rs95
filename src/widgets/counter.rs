@@ -1,7 +1,7 @@
 use egui::{Color32, Painter, Rect, Response, Sense, Ui, Widget, pos2, vec2};
 
-use crate::paint::{self, Bevel};
 use crate::Theme;
+use crate::paint::{self, Bevel};
 
 /// A red seven-segment display, like the Minesweeper counters (React95 `Counter`).
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
@@ -69,10 +69,7 @@ impl Widget for Counter {
         let min = -(10_i64.saturating_pow(self.digits as u32 - 1) - 1);
         let v = self.value.clamp(min, max);
         let text = format!("{:0>width$}", v.unsigned_abs(), width = self.digits);
-        let mut cells: Vec<[bool; 7]> = text
-            .bytes()
-            .map(|b| DIGITS[(b - b'0') as usize])
-            .collect();
+        let mut cells: Vec<[bool; 7]> = text.bytes().map(|b| DIGITS[(b - b'0') as usize]).collect();
         if v < 0 {
             cells[0] = MINUS;
         }

@@ -1,7 +1,7 @@
 use egui::{Align2, Rect, Response, Sense, TextStyle, Ui, Widget, pos2, vec2};
 
-use crate::paint::{self, Bevel};
 use crate::Theme;
+use crate::paint::{self, Bevel};
 
 /// Visual variant of a [`ProgressBar`].
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -78,7 +78,10 @@ impl Widget for ProgressBar {
                 paint::bevel(painter, rect, Bevel::Field, &t);
                 let filled = Rect::from_min_max(
                     inner.min,
-                    pos2((inner.min.x + inner.width() * self.value).round(), inner.max.y),
+                    pos2(
+                        (inner.min.x + inner.width() * self.value).round(),
+                        inner.max.y,
+                    ),
                 );
                 painter.rect_filled(filled, 0.0, t.progress);
 
@@ -89,10 +92,20 @@ impl Widget for ProgressBar {
                 if let Some(label) = label {
                     let font = TextStyle::Body.resolve(ui.style());
                     let center = inner.center().round();
-                    painter.with_clip_rect(inner).text(center, Align2::CENTER_CENTER, &label, font.clone(), t.canvas_text);
-                    painter
-                        .with_clip_rect(filled.intersect(inner))
-                        .text(center, Align2::CENTER_CENTER, &label, font, t.canvas_text_invert);
+                    painter.with_clip_rect(inner).text(
+                        center,
+                        Align2::CENTER_CENTER,
+                        &label,
+                        font.clone(),
+                        t.canvas_text,
+                    );
+                    painter.with_clip_rect(filled.intersect(inner)).text(
+                        center,
+                        Align2::CENTER_CENTER,
+                        &label,
+                        font,
+                        t.canvas_text_invert,
+                    );
                 }
             }
             ProgressVariant::Tile => {

@@ -1,6 +1,4 @@
-use egui::{
-    InnerResponse, Rect, Sense, Ui, Vec2, pos2, scroll_area::ScrollBarVisibility, vec2,
-};
+use egui::{InnerResponse, Rect, Sense, Ui, Vec2, pos2, scroll_area::ScrollBarVisibility, vec2};
 
 use crate::paint::{self, Bevel, icons};
 use crate::{Frame, Theme};
@@ -71,7 +69,10 @@ impl ScrollView {
                 .allocate_ui(vec2(content_w, self.max_height), |ui| {
                     ui.set_width(content_w);
                     area.show(ui, |ui| {
-                        egui::Frame::NONE.inner_margin(4).show(ui, add_contents).inner
+                        egui::Frame::NONE
+                            .inner_margin(4)
+                            .show(ui, add_contents)
+                            .inner
                     })
                 })
                 .inner;
@@ -81,27 +82,50 @@ impl ScrollView {
             let max_offset = (content - viewport).max(0.0);
             let offset = out.state.clamped_offset().y.clamp(0.0, max_offset);
 
-            let (bar, _) = ui.allocate_exact_size(vec2(SCROLLBAR_W, viewport.max(2.0 * SCROLLBAR_W)), Sense::hover());
+            let (bar, _) = ui.allocate_exact_size(
+                vec2(SCROLLBAR_W, viewport.max(2.0 * SCROLLBAR_W)),
+                Sense::hover(),
+            );
             let painter = ui.painter();
             let scrollable = max_offset > 0.0 && ui.is_enabled();
 
             let up = Rect::from_min_size(bar.min, Vec2::splat(SCROLLBAR_W));
-            let down = Rect::from_min_size(pos2(bar.min.x, bar.max.y - SCROLLBAR_W), Vec2::splat(SCROLLBAR_W));
+            let down = Rect::from_min_size(
+                pos2(bar.min.x, bar.max.y - SCROLLBAR_W),
+                Vec2::splat(SCROLLBAR_W),
+            );
             let track = Rect::from_min_max(pos2(bar.min.x, up.max.y), pos2(bar.max.x, down.min.y));
             paint::dither(painter, track, t.border_lightest, t.material);
 
             let mut new_offset = offset;
             let step = 20.0;
-            for (rect, rows, dir, salt) in [(up, icons::ARROW_UP, -1.0, "up"), (down, icons::ARROW_DOWN, 1.0, "down")] {
+            for (rect, rows, dir, salt) in [
+                (up, icons::ARROW_UP, -1.0, "up"),
+                (down, icons::ARROW_DOWN, 1.0, "down"),
+            ] {
                 let r = ui.interact(rect, id.with(salt), Sense::click());
                 let held = scrollable && r.is_pointer_button_down_on() && r.hovered();
                 painter.rect_filled(rect, 0.0, t.material);
-                paint::bevel(painter, rect, if held { Bevel::ButtonPressed } else { Bevel::Button }, &t);
+                paint::bevel(
+                    painter,
+                    rect,
+                    if held {
+                        Bevel::ButtonPressed
+                    } else {
+                        Bevel::Button
+                    },
+                    &t,
+                );
                 let off = if held { vec2(1.0, 1.0) } else { Vec2::ZERO };
                 if scrollable {
                     paint::icon(painter, rect.translate(off), rows, t.material_text);
                 } else {
-                    paint::icon(painter, rect.translate(vec2(1.0, 1.0)), rows, t.material_text_disabled_shadow);
+                    paint::icon(
+                        painter,
+                        rect.translate(vec2(1.0, 1.0)),
+                        rows,
+                        t.material_text_disabled_shadow,
+                    );
                     paint::icon(painter, rect, rows, t.material_text_disabled);
                 }
                 if scrollable && r.clicked() {
@@ -113,13 +137,22 @@ impl ScrollView {
                 let thumb_h = (track.height() * viewport / content).clamp(8.0, track.height());
                 let free = track.height() - thumb_h;
                 let thumb_y = track.min.y + free * offset / max_offset;
-                let thumb = Rect::from_min_size(pos2(track.min.x, thumb_y.round()), vec2(SCROLLBAR_W, thumb_h.round()));
+                let thumb = Rect::from_min_size(
+                    pos2(track.min.x, thumb_y.round()),
+                    vec2(SCROLLBAR_W, thumb_h.round()),
+                );
 
                 let track_resp = ui.interact(track, id.with("track"), Sense::click());
                 if track_resp.clicked() {
                     if let Some(p) = track_resp.interact_pointer_pos() {
                         let page = viewport - step;
-                        new_offset += if p.y < thumb.min.y { -page } else if p.y > thumb.max.y { page } else { 0.0 };
+                        new_offset += if p.y < thumb.min.y {
+                            -page
+                        } else if p.y > thumb.max.y {
+                            page
+                        } else {
+                            0.0
+                        };
                     }
                 }
                 let thumb_resp = ui.interact(thumb, id.with("thumb"), Sense::drag());

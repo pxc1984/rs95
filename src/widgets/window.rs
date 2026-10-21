@@ -1,10 +1,10 @@
 use egui::{
-    Context, Id, Margin, Mesh, Order, Pos2, Rect, Response, Sense, Shape,
-    TextStyle, TextWrapMode, Ui, Vec2, WidgetText, pos2, vec2,
+    Context, Id, Margin, Mesh, Order, Pos2, Rect, Response, Sense, Shape, TextStyle, TextWrapMode,
+    Ui, Vec2, WidgetText, pos2, vec2,
 };
 
-use crate::paint::{self, Bevel, icons};
 use crate::Theme;
+use crate::paint::{self, Bevel, icons};
 
 const HEADER_H: f32 = 18.0;
 const BORDER: f32 = 3.0;
@@ -163,10 +163,12 @@ impl<'a> Window<'a> {
             return None;
         }
         let state_id = self.id.with("rs95_window_state");
-        let mut state = ctx.data(|d| d.get_temp::<State>(state_id)).unwrap_or(State {
-            pos: self.default_pos.unwrap_or(pos2(32.0, 32.0)),
-            size: self.default_size,
-        });
+        let mut state = ctx
+            .data(|d| d.get_temp::<State>(state_id))
+            .unwrap_or(State {
+                pos: self.default_pos.unwrap_or(pos2(32.0, 32.0)),
+                size: self.default_size,
+            });
 
         let area = egui::Area::new(self.id)
             .order(Order::Middle)
@@ -179,9 +181,11 @@ impl<'a> Window<'a> {
         });
         self.active = Some(active);
         let open = self.open.take();
-            let min_size = self.min_size;
+        let min_size = self.min_size;
 
-        let out = area.show(ctx, |ui| self.ui(ui, state.size, add_contents)).inner;
+        let out = area
+            .show(ctx, |ui| self.ui(ui, state.size, add_contents))
+            .inner;
 
         if out.header.dragged() {
             state.pos += out.header.drag_delta();
@@ -262,14 +266,23 @@ impl<'a> Window<'a> {
             rect.min + Vec2::splat(BORDER),
             vec2(rect.width() - 2.0 * BORDER, HEADER_H),
         );
-        let header = ui.interact(header_rect, self.id.with("rs95_header"), Sense::click_and_drag());
+        let header = ui.interact(
+            header_rect,
+            self.id.with("rs95_header"),
+            Sense::click_and_drag(),
+        );
 
         let (bg_l, bg_r, fg) = if active {
-            (t.header_background, t.header_gradient.unwrap_or(t.header_background), t.header_text)
+            (
+                t.header_background,
+                t.header_gradient.unwrap_or(t.header_background),
+                t.header_text,
+            )
         } else {
             (
                 t.header_not_active_background,
-                t.header_not_active_gradient.unwrap_or(t.header_not_active_background),
+                t.header_not_active_gradient
+                    .unwrap_or(t.header_not_active_background),
                 t.header_not_active_text,
             )
         };
@@ -295,17 +308,39 @@ impl<'a> Window<'a> {
             let resp = ui.interact(r, self.id.with(("rs95_title_btn", salt)), Sense::click());
             let pressed = resp.is_pointer_button_down_on() && resp.hovered();
             painter.rect_filled(r, 0.0, t.material);
-            paint::bevel(painter, r, if pressed { Bevel::ButtonPressed } else { Bevel::Button }, &t);
+            paint::bevel(
+                painter,
+                r,
+                if pressed {
+                    Bevel::ButtonPressed
+                } else {
+                    Bevel::Button
+                },
+                &t,
+            );
             let off = if pressed { vec2(1.0, 1.0) } else { Vec2::ZERO };
-            let color = if enabled { t.material_text } else { t.material_text_disabled };
+            let color = if enabled {
+                t.material_text
+            } else {
+                t.material_text_disabled
+            };
             paint::icon(painter, r.translate(off), rows, color);
             clicked[i] = resp.clicked();
             x -= btn.x + gap;
         }
 
         // bold title: draw twice, one point apart
-        let galley = self.title.into_galley(ui, Some(TextWrapMode::Truncate), (x - header_rect.min.x - 6.0).max(0.0), TextStyle::Body);
-        let pos = pos2(header_rect.min.x + 3.0, header_rect.center().y - galley.size().y / 2.0).round();
+        let galley = self.title.into_galley(
+            ui,
+            Some(TextWrapMode::Truncate),
+            (x - header_rect.min.x - 6.0).max(0.0),
+            TextStyle::Body,
+        );
+        let pos = pos2(
+            header_rect.min.x + 3.0,
+            header_rect.center().y - galley.size().y / 2.0,
+        )
+        .round();
         painter.galley_with_override_text_color(pos, galley.clone(), fg);
         painter.galley_with_override_text_color(pos + vec2(1.0, 0.0), galley, fg);
 

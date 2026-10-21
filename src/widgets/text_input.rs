@@ -1,11 +1,9 @@
 use std::ops::RangeInclusive;
 
-use egui::{
-    Margin, Rect, Response, Sense, TextEdit, Ui, Widget, WidgetText, emath::Numeric, vec2,
-};
+use egui::{Margin, Rect, Response, Sense, TextEdit, Ui, Widget, WidgetText, emath::Numeric, vec2};
 
-use crate::paint::{self, Bevel, icons};
 use crate::Theme;
+use crate::paint::{self, Bevel, icons};
 
 /// A sunken white text field.
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
@@ -83,7 +81,10 @@ pub(crate) fn field<R>(
     add: impl FnOnce(&mut Ui) -> R,
 ) -> (R, Rect) {
     let t = Theme::get(ui.ctx());
-    let r = egui::Frame::NONE.fill(fill).inner_margin(margin).show(ui, add);
+    let r = egui::Frame::NONE
+        .fill(fill)
+        .inner_margin(margin)
+        .show(ui, add);
     paint::bevel(ui.painter(), r.response.rect, Bevel::Field, &t);
     (r.inner, r.response.rect)
 }
@@ -93,7 +94,11 @@ impl Widget for TextInput<'_> {
         let t = Theme::get(ui.ctx());
         let width = self.width.unwrap_or(ui.spacing().text_edit_width);
         let inner_width = width - (FIELD_MARGIN.left + FIELD_MARGIN.right) as f32;
-        let fill = if ui.is_enabled() { t.canvas } else { t.material };
+        let fill = if ui.is_enabled() {
+            t.canvas
+        } else {
+            t.material
+        };
 
         let mut edit = if self.multiline {
             TextEdit::multiline(self.text).desired_rows(self.rows)
@@ -177,7 +182,11 @@ impl<N: Numeric> Widget for NumberInput<'_, N> {
             format_number(*self.value)
         };
 
-        let fill = if ui.is_enabled() { t.canvas } else { t.material };
+        let fill = if ui.is_enabled() {
+            t.canvas
+        } else {
+            t.material
+        };
         let spin_w = 16.0;
         let inner_width = self.width - spin_w - (FIELD_MARGIN.left + FIELD_MARGIN.right) as f32;
 
@@ -232,11 +241,23 @@ impl<N: Numeric> Widget for NumberInput<'_, N> {
             paint::bevel(
                 &painter,
                 rect,
-                if pressed { Bevel::ButtonPressed } else { Bevel::Button },
+                if pressed {
+                    Bevel::ButtonPressed
+                } else {
+                    Bevel::Button
+                },
                 &t,
             );
-            let color = if ui.is_enabled() { t.material_text } else { t.material_text_disabled };
-            let off = if pressed { vec2(1.0, 1.0) } else { vec2(0.0, 0.0) };
+            let color = if ui.is_enabled() {
+                t.material_text
+            } else {
+                t.material_text_disabled
+            };
+            let off = if pressed {
+                vec2(1.0, 1.0)
+            } else {
+                vec2(0.0, 0.0)
+            };
             paint::icon(&painter, rect.translate(off), rows, color);
             if r.clicked() {
                 let v = clamp(self.value.to_f64() + delta);

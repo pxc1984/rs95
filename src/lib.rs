@@ -25,8 +25,8 @@ mod theme;
 mod widgets;
 
 pub use paint::Bevel;
-pub use style::{FONT_SIZE, apply_style, install};
 #[cfg(feature = "font")]
 pub use style::{FONT_DATA, FONT_NAME, install_font};
+pub use style::{FONT_SIZE, apply_style, install};
 pub use theme::Theme;
 pub use widgets::*;

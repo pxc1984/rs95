@@ -4,8 +4,8 @@ use egui::{
     Key, Rect, Response, Sense, Ui, Widget, WidgetInfo, emath::Numeric, pos2, remap_clamp, vec2,
 };
 
-use crate::paint::{self, Bevel};
 use crate::Theme;
+use crate::paint::{self, Bevel};
 
 /// A Windows 95 trackbar.
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
@@ -68,7 +68,11 @@ impl<N: Numeric> Widget for Slider<'_, N> {
 
         let mut v = self.value.to_f64();
         if let Some(p) = response.interact_pointer_pos() {
-            v = snap(remap_clamp(p.x as f64, (*x_range.start() as f64)..=(*x_range.end() as f64), min..=max));
+            v = snap(remap_clamp(
+                p.x as f64,
+                (*x_range.start() as f64)..=(*x_range.end() as f64),
+                min..=max,
+            ));
         }
         if response.has_focus() {
             let step = self.step.unwrap_or((max - min) / 20.0);
@@ -96,21 +100,29 @@ impl<N: Numeric> Widget for Slider<'_, N> {
         if ui.is_rect_visible(rect) {
             let painter = ui.painter();
             let cy = (rect.min.y + THUMB.y / 2.0).round();
-            let track = Rect::from_min_max(
-                pos2(rect.min.x, cy - 2.0),
-                pos2(rect.max.x, cy + 2.0),
-            );
+            let track = Rect::from_min_max(pos2(rect.min.x, cy - 2.0), pos2(rect.max.x, cy + 2.0));
             painter.rect_filled(track, 0.0, t.material);
             paint::bevel(painter, track, Bevel::Field, &t);
 
             if self.marks >= 2 {
                 for i in 0..self.marks {
                     let x = egui::lerp(x_range.clone(), i as f32 / (self.marks - 1) as f32).round();
-                    paint::px_rect(painter, x, rect.max.y - 5.0, x + 1.0, rect.max.y, t.material_text);
+                    paint::px_rect(
+                        painter,
+                        x,
+                        rect.max.y - 5.0,
+                        x + 1.0,
+                        rect.max.y,
+                        t.material_text,
+                    );
                 }
             }
 
-            let x = remap_clamp(v, min..=max, (*x_range.start() as f64)..=(*x_range.end() as f64)) as f32;
+            let x = remap_clamp(
+                v,
+                min..=max,
+                (*x_range.start() as f64)..=(*x_range.end() as f64),
+            ) as f32;
             let thumb = Rect::from_center_size(pos2(x.round(), rect.min.y + THUMB.y / 2.0), THUMB);
             let thumb = Rect::from_min_size(thumb.min.round(), THUMB);
             painter.rect_filled(thumb, 0.0, t.material);

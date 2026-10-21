@@ -3,8 +3,8 @@
 use egui::{Align, Layout, RectAlign, Ui, vec2};
 use rs95::{
     AppBar, Button, Checkbox, Counter, Frame, GroupBox, MenuButton, MenuItem, NumberInput,
-    ProgressBar, Select, Separator, ScrollView, Slider, StatusField, Table, Tabs, TextInput,
-    Theme, Toolbar, Window, menu_separator, radio_value, tooltip,
+    ProgressBar, ScrollView, Select, Separator, Slider, StatusField, Table, Tabs, TextInput, Theme,
+    Toolbar, Window, menu_separator, radio_value, tooltip,
 };
 
 pub struct Showcase {
@@ -87,8 +87,16 @@ impl Showcase {
             .show(ui, |ui| {
                 ui.with_layout(Layout::top_down(Align::Min), |ui| {
                     ui.add_space(12.0);
-                    for (label, open) in [("Controls", &mut self.controls_open), ("Notepad", &mut self.notepad_open)] {
-                        let r = ui.add(Button::new(label).thin().active(*open).min_size(vec2(80.0, 0.0)));
+                    for (label, open) in [
+                        ("Controls", &mut self.controls_open),
+                        ("Notepad", &mut self.notepad_open),
+                    ] {
+                        let r = ui.add(
+                            Button::new(label)
+                                .thin()
+                                .active(*open)
+                                .min_size(vec2(80.0, 0.0)),
+                        );
                         if r.clicked() {
                             *open = !*open;
                         }
@@ -109,7 +117,10 @@ impl Showcase {
                 .align(RectAlign::TOP_START)
                 .show(ui, |ui| {
                     let mut picked = None;
-                    for (i, name) in ["Programs", "Documents", "Settings"].into_iter().enumerate() {
+                    for (i, name) in ["Programs", "Documents", "Settings"]
+                        .into_iter()
+                        .enumerate()
+                    {
                         if ui.add(MenuItem::new(name).submenu(true)).clicked() {
                             picked = Some(i);
                         }
@@ -123,7 +134,11 @@ impl Showcase {
                 });
             let _ = picked;
             ui.add(Separator::vertical());
-            ui.add(Button::new("Notepad").active(self.notepad_open).min_size(vec2(120.0, 0.0)));
+            ui.add(
+                Button::new("Notepad")
+                    .active(self.notepad_open)
+                    .min_size(vec2(120.0, 0.0)),
+            );
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 ui.add(StatusField::new("12:00 PM").width(80.0));
             });
@@ -168,26 +183,37 @@ impl Showcase {
                     });
                 });
                 ui.add_space(4.0);
-                egui::Grid::new("form").num_columns(2).spacing([8.0, 6.0]).show(ui, |ui| {
-                    ui.label("Name:");
-                    tooltip(ui.add(TextInput::singleline(&mut self.name).width(180.0)), "Your name");
-                    ui.end_row();
-                    ui.label("Copies:");
-                    ui.add(NumberInput::new(&mut self.count).range(0..=99).width(70.0));
-                    ui.end_row();
-                    ui.label("Fruit:");
-                    ui.add(
-                        Select::new("fruit", &mut self.fruit)
-                            .option(0, "Apple")
-                            .option(1, "Banana")
-                            .option(2, "Cherry")
-                            .width(180.0),
-                    );
-                    ui.end_row();
-                    ui.label("Volume:");
-                    ui.add(Slider::new(&mut self.volume, 0.0..=100.0).step(10.0).marks(11).width(180.0));
-                    ui.end_row();
-                });
+                egui::Grid::new("form")
+                    .num_columns(2)
+                    .spacing([8.0, 6.0])
+                    .show(ui, |ui| {
+                        ui.label("Name:");
+                        tooltip(
+                            ui.add(TextInput::singleline(&mut self.name).width(180.0)),
+                            "Your name",
+                        );
+                        ui.end_row();
+                        ui.label("Copies:");
+                        ui.add(NumberInput::new(&mut self.count).range(0..=99).width(70.0));
+                        ui.end_row();
+                        ui.label("Fruit:");
+                        ui.add(
+                            Select::new("fruit", &mut self.fruit)
+                                .option(0, "Apple")
+                                .option(1, "Banana")
+                                .option(2, "Cherry")
+                                .width(180.0),
+                        );
+                        ui.end_row();
+                        ui.label("Volume:");
+                        ui.add(
+                            Slider::new(&mut self.volume, 0.0..=100.0)
+                                .step(10.0)
+                                .marks(11)
+                                .width(180.0),
+                        );
+                        ui.end_row();
+                    });
                 ui.add_space(6.0);
                 ui.add(ProgressBar::new(self.progress).width(300.0));
                 ui.add_space(4.0);
@@ -225,7 +251,12 @@ impl Showcase {
                                 ui.label("Scheme:");
                                 ui.add(
                                     Select::new("scheme", &mut self.theme)
-                                        .options(Theme::all().iter().enumerate().map(|(i, t)| (i, t.name)))
+                                        .options(
+                                            Theme::all()
+                                                .iter()
+                                                .enumerate()
+                                                .map(|(i, t)| (i, t.name)),
+                                        )
                                         .width(200.0),
                                 );
                             }
@@ -257,7 +288,10 @@ impl Showcase {
                         ui.add(MenuItem::new("Exit"));
                     });
                     MenuButton::new("View").show(ui, |ui| {
-                        if ui.add(MenuItem::new("Word wrap").checked(self.word_wrap)).clicked() {
+                        if ui
+                            .add(MenuItem::new("Word wrap").checked(self.word_wrap))
+                            .clicked()
+                        {
                             self.word_wrap = !self.word_wrap;
                         }
                     });
@@ -277,7 +311,9 @@ impl Showcase {
                 }
                 ui.add_space(4.0);
                 ui.horizontal(|ui| {
-                    ui.add(StatusField::new(format!("{} object(s)", self.files.len())).width(150.0));
+                    ui.add(
+                        StatusField::new(format!("{} object(s)", self.files.len())).width(150.0),
+                    );
                     ui.add(StatusField::new("1.44 MB free").width(150.0));
                 });
             });
@@ -294,7 +330,9 @@ impl Showcase {
                 ScrollView::new("notepad").max_height(120.0).show(ui, |ui| {
                     ui.set_width(300.0);
                     for i in 1..=15 {
-                        ui.label(format!("Line {i}: The quick brown fox jumps over the lazy dog."));
+                        ui.label(format!(
+                            "Line {i}: The quick brown fox jumps over the lazy dog."
+                        ));
                     }
                 });
                 ui.add_space(4.0);
@@ -308,34 +346,45 @@ impl Showcase {
             .minimize_maximize(true)
             .close_button(true)
             .show(ctx, |ui| {
-                Frame::field().fill(Theme::get(ui.ctx()).material).inner_margin(4).show(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        ui.add(Counter::new(self.mines));
-                        ui.add_space(20.0);
-                        if ui.add(Button::new(":)").square(true).min_size(vec2(26.0, 26.0))).clicked() {
-                            self.mines = 10;
-                        }
-                        ui.add_space(20.0);
-                        ui.add(Counter::new(127));
-                    });
-                });
-                ui.add_space(4.0);
-                Frame::field().fill(Theme::get(ui.ctx()).material).inner_margin(0).show(ui, |ui| {
-                    egui::Grid::new("mines").spacing([0.0, 0.0]).show(ui, |ui| {
-                        for y in 0..8 {
-                            for x in 0..8 {
-                                let open = (x + y) % 5 == 0 || y > 5;
-                                let r = ui.add(Button::new(if open && x == 3 { "1" } else { " " })
-                                    .active(open)
-                                    .min_size(vec2(18.0, 18.0)));
-                                if r.clicked() {
-                                    self.mines -= 1;
-                                }
+                Frame::field()
+                    .fill(Theme::get(ui.ctx()).material)
+                    .inner_margin(4)
+                    .show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.add(Counter::new(self.mines));
+                            ui.add_space(20.0);
+                            if ui
+                                .add(Button::new(":)").square(true).min_size(vec2(26.0, 26.0)))
+                                .clicked()
+                            {
+                                self.mines = 10;
                             }
-                            ui.end_row();
-                        }
+                            ui.add_space(20.0);
+                            ui.add(Counter::new(127));
+                        });
                     });
-                });
+                ui.add_space(4.0);
+                Frame::field()
+                    .fill(Theme::get(ui.ctx()).material)
+                    .inner_margin(0)
+                    .show(ui, |ui| {
+                        egui::Grid::new("mines").spacing([0.0, 0.0]).show(ui, |ui| {
+                            for y in 0..8 {
+                                for x in 0..8 {
+                                    let open = (x + y) % 5 == 0 || y > 5;
+                                    let r = ui.add(
+                                        Button::new(if open && x == 3 { "1" } else { " " })
+                                            .active(open)
+                                            .min_size(vec2(18.0, 18.0)),
+                                    );
+                                    if r.clicked() {
+                                        self.mines -= 1;
+                                    }
+                                }
+                                ui.end_row();
+                            }
+                        });
+                    });
             });
     }
 }

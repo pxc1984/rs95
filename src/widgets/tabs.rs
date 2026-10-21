@@ -2,8 +2,8 @@ use egui::{
     InnerResponse, Margin, Rect, Sense, Shape, TextStyle, TextWrapMode, Ui, WidgetText, pos2, vec2,
 };
 
-use crate::paint::{self, Bevel};
 use crate::Theme;
+use crate::paint::{self, Bevel};
 
 /// A tab strip with a body (React95 `Tabs` + `Tab` + `TabBody`).
 ///
@@ -59,10 +59,19 @@ impl<'a> Tabs<'a> {
                 .tabs
                 .into_iter()
                 .map(|text| {
-                    text.into_galley(ui, Some(TextWrapMode::Extend), f32::INFINITY, TextStyle::Body)
+                    text.into_galley(
+                        ui,
+                        Some(TextWrapMode::Extend),
+                        f32::INFINITY,
+                        TextStyle::Body,
+                    )
                 })
                 .collect();
-            let strip_w: f32 = galleys.iter().map(|g| g.size().x.round() + 16.0).sum::<f32>() + 4.0;
+            let strip_w: f32 = galleys
+                .iter()
+                .map(|g| g.size().x.round() + 16.0)
+                .sum::<f32>()
+                + 4.0;
             let (strip, _) = ui.allocate_exact_size(vec2(strip_w, TAB_H + 2.0), Sense::hover());
 
             let mut rects = Vec::with_capacity(n);
@@ -87,7 +96,8 @@ impl<'a> Tabs<'a> {
                     add_body(ui, selected)
                 });
             let body_rect = body.response.rect;
-            ui.painter().set(bg, Shape::rect_filled(body_rect, 0.0, t.material));
+            ui.painter()
+                .set(bg, Shape::rect_filled(body_rect, 0.0, t.material));
             let painter = ui.painter();
             paint::bevel(painter, body_rect, Bevel::Button, &t);
 
@@ -104,9 +114,19 @@ impl<'a> Tabs<'a> {
                         *r
                     };
                     paint_tab(painter, r, &t);
-                    let pos = pos2(r.center().x - g.size().x / 2.0, r.center().y - g.size().y / 2.0);
+                    let pos = pos2(
+                        r.center().x - g.size().x / 2.0,
+                        r.center().y - g.size().y / 2.0,
+                    );
                     let galley_rect = Rect::from_min_size(pos.round(), g.size());
-                    paint::text(painter, galley_rect.min, g.clone(), t.material_text, enabled, &t);
+                    paint::text(
+                        painter,
+                        galley_rect.min,
+                        g.clone(),
+                        t.material_text,
+                        enabled,
+                        &t,
+                    );
                     if active && resp.has_focus() {
                         paint::focus_rect(painter, galley_rect.expand(2.0), t.material_text);
                     }
@@ -126,11 +146,35 @@ fn paint_tab(painter: &egui::Painter, r: Rect, t: &Theme) {
     px(min.x, min.y + 2.0, min.x + 1.0, max.y, t.border_lightest);
     px(min.x + 1.0, min.y + 2.0, min.x + 2.0, max.y, t.border_light);
     // rounded corner + top
-    px(min.x + 1.0, min.y + 1.0, min.x + 2.0, min.y + 2.0, t.border_lightest);
-    px(min.x + 2.0, min.y, max.x - 2.0, min.y + 1.0, t.border_lightest);
-    px(min.x + 2.0, min.y + 1.0, max.x - 2.0, min.y + 2.0, t.border_light);
+    px(
+        min.x + 1.0,
+        min.y + 1.0,
+        min.x + 2.0,
+        min.y + 2.0,
+        t.border_lightest,
+    );
+    px(
+        min.x + 2.0,
+        min.y,
+        max.x - 2.0,
+        min.y + 1.0,
+        t.border_lightest,
+    );
+    px(
+        min.x + 2.0,
+        min.y + 1.0,
+        max.x - 2.0,
+        min.y + 2.0,
+        t.border_light,
+    );
     // right shadow
-    px(max.x - 2.0, min.y + 1.0, max.x - 1.0, min.y + 2.0, t.border_darkest);
+    px(
+        max.x - 2.0,
+        min.y + 1.0,
+        max.x - 1.0,
+        min.y + 2.0,
+        t.border_darkest,
+    );
     px(max.x - 1.0, min.y + 2.0, max.x, max.y, t.border_darkest);
     px(max.x - 2.0, min.y + 2.0, max.x - 1.0, max.y, t.border_dark);
 }

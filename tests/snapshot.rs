@@ -12,7 +12,8 @@ use egui_kittest::Harness;
 /// The default kittest setup, but accept whatever limits the adapter has
 /// (software rasterizers such as old lavapipe report very low ones).
 fn wgpu_setup() -> egui_wgpu::WgpuSetup {
-    let egui_wgpu::WgpuSetup::CreateNew(mut setup) = egui_kittest::wgpu::default_wgpu_setup() else {
+    let egui_wgpu::WgpuSetup::CreateNew(mut setup) = egui_kittest::wgpu::default_wgpu_setup()
+    else {
         unreachable!()
     };
     // old Vulkan drivers lack VK_EXT_debug_utils
